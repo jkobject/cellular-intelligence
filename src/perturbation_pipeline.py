@@ -226,7 +226,7 @@ def build_mlp_model(
     )
 
 
-def build_lregression_model() -> Pipeline:
+def build_linear_regression_model() -> Pipeline:
     """Build linear regression baseline."""
     return Pipeline(
         steps=[
@@ -283,8 +283,8 @@ def build_model(
             max_iter=mlp_max_iter,
             random_state=random_state,
         )
-    if normalized_name in {"log_regression", "linear_regression"}:
-        return build_lregression_model()
+    if normalized_name == "linear_regression":
+        return build_linear_regression_model()
     if normalized_name == "xgboost":
         return build_xgboost_model(random_state=random_state)
 
@@ -357,7 +357,7 @@ def run_kfold_cv(
 
 def select_model_with_kfold(
     train_data: tuple[np.ndarray, np.ndarray],
-    candidate_models: Sequence[str] = ("mlp", "log_regression", "xgboost"),
+    candidate_models: Sequence[str] = ("mlp", "linear_regression", "xgboost"),
     n_splits: int = 5,
     random_state: int = 42,
     mlp_hidden_dim: list[int] | int = 128,
@@ -403,7 +403,7 @@ def select_model_with_kfold(
 
 def train_with_model_selection(
     train_data: tuple[np.ndarray, np.ndarray],
-    candidate_models: Sequence[str] = ("mlp", "log_regression", "xgboost"),
+    candidate_models: Sequence[str] = ("mlp", "linear_regression", "xgboost"),
     n_splits: int = 5,
     random_state: int = 42,
     mlp_hidden_dim: list[int] | int = 128,

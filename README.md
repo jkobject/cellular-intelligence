@@ -21,7 +21,7 @@ We built a simple, scalable baseline pipeline in [`src/perturbation_pipeline.py`
 - train/val split is random inside remaining (non-test) timepoints
 4. Train robustly using k-fold cross-validation model selection over:
 - `mlp`
-- `log_regression` (linear regression baseline for continuous targets)
+- `linear_regression`
 - `xgboost`
 5. Fit the best model on the full training pool and evaluate on held-out test timepoints.
 6. Generate UMAP visualizations for perturbation and expression spaces, colored by timepoint.
@@ -57,18 +57,45 @@ It covers:
 - UMAP plots
 
 ## How To Run
+This repo includes a `pyproject.toml` and `uv.lock` so dependency resolution is reproducible.
+
+### 1) Create and use a uv virtual environment
 ```bash
 uv venv
-uv pip install --python .venv/bin/python numpy anndata scikit-learn jupyter ipykernel pandas matplotlib umap-learn xgboost
+source .venv/bin/activate
 ```
 
-Then run:
+### 2) Install dependencies from lockfile (reproducible)
+```bash
+uv sync
+```
+
+### 3) Register the notebook kernel (one-time)
+```bash
+.venv/bin/python -m ipykernel install --user --name cellular-intelligence --display-name "cellular-intelligence (.venv)"
+```
+
+### 4) Start Jupyter from the project environment
 ```bash
 .venv/bin/python -m jupyter notebook
 ```
 
-Open:
+Then open:
 - `exercise2_perturbation_modeling.ipynb`
+- In Jupyter, select kernel: `cellular-intelligence (.venv)`
+
+## Results
+Latest validated run (quick robust run with k-fold model selection over `mlp`, `linear_regression`, `xgboost`):
+
+- Best model selected by CV RMSE: `linear_regression`
+- CV mean RMSE (3-fold, train pool subset):  
+  - `linear_regression`: `4.619`
+  - `xgboost`: `4.917`
+  - `mlp`: `5.338`
+- Held-out test RMSE (timepoints 9 and 10): `4.525`
+
+Timepoint-level evaluation is also supported via:
+- `evaluate_predictions_by_timepoint(...)`
 
 ## What We Learned
 - Time-aware splitting matters: random global split can leak temporal information.
@@ -76,6 +103,26 @@ Open:
 - Cross-validation improves robustness compared to one train/val split.
 - Strong linear baselines can be very competitive on this toy embedded dataset.
 - UMAP helps sanity-check whether timepoints and perturbation structure are separable.
+
+## Data Audit Findings
+Using the same loader as the notebook (`load_experiment_data`):
+
+- Expression rows (`adata.X`) are all unique under exact matching:
+  - `48,070` total rows
+  - `48,070` unique rows
+- Perturbation rows (`adata.obsm["perturbation"]`) are heavily repeated:
+  - `48,070` total rows
+  - `9,908` unique perturbation vectors
+  - average cells per perturbation: `4.85` (median `5`)
+- Per timepoint (`4,807` rows each), perturbation uniqueness is stable:
+  - around `989` to `994` unique perturbations per timepoint
+  - average cells per perturbation per timepoint is about `4.84` to `4.86`
+- Perturbation sharing across timepoints is almost absent:
+  - exactly `1` perturbation vector appears in multiple timepoints
+  - that shared vector is the all-zero perturbation, appearing in all rounds (count `186` total)
+- For rounds `9` and `10` specifically:
+  - `1,983` unique perturbations are exclusive to `{9, 10}`
+  - split: `992` only in round `9`, `991` only in round `10`, `0` shared only by `{9, 10}`
 
 ## Next Improvements
 - Hyperparameter search inside each model family (not only model-family selection).
