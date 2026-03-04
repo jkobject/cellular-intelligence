@@ -84,19 +84,6 @@ Then open:
 - `exercise2_perturbation_modeling.ipynb`
 - In Jupyter, select kernel: `cellular-intelligence (.venv)`
 
-## Results
-Latest validated run (quick robust run with k-fold model selection over `mlp`, `linear_regression`, `xgboost`):
-
-- Best model selected by CV RMSE: `linear_regression`
-- CV mean RMSE (3-fold, train pool subset):  
-  - `linear_regression`: `4.619`
-  - `xgboost`: `4.917`
-  - `mlp`: `5.338`
-- Held-out test RMSE (timepoints 9 and 10): `4.525`
-
-Timepoint-level evaluation is also supported via:
-- `evaluate_predictions_by_timepoint(...)`
-
 ## What We Learned
 - Time-aware splitting matters: random global split can leak temporal information.
 - A simple transition formulation `[X_t, P_t] -> X_{t+1}` is clear and works well as a first baseline.
@@ -116,13 +103,11 @@ Using the same loader as the notebook (`load_experiment_data`):
   - average cells per perturbation: `4.85` (median `5`)
 - Per timepoint (`4,807` rows each), perturbation uniqueness is stable:
   - around `989` to `994` unique perturbations per timepoint
-  - average cells per perturbation per timepoint is about `4.84` to `4.86`
 - Perturbation sharing across timepoints is almost absent:
   - exactly `1` perturbation vector appears in multiple timepoints
   - that shared vector is the all-zero perturbation, appearing in all rounds (count `186` total)
 - For rounds `9` and `10` specifically:
   - `1,983` unique perturbations are exclusive to `{9, 10}`
-  - split: `992` only in round `9`, `991` only in round `10`, `0` shared only by `{9, 10}`
 
 ## Next Improvements
 - Hyperparameter search inside each model family (not only model-family selection).
